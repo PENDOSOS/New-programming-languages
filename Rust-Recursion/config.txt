@@ -1,0 +1,13 @@
+# This is a sample configuration file for the Traveling Salesman Problem
+
+# List of cities and their distances to other cities
+# Format: CityId, Distance to City 0, Distance to City 1, Distance to City 2, ...
+
+0, 0, 29, 20, 31
+1, 29, 0, 15, 18
+2, 20, 15, 0, 25
+3, 31, 18, 25, 0 
+
+# Starting City (index)
+# Specify the index of the city where the tour should start (e.g., 0 for City 0)
+Starting City: 0
