@@ -24,33 +24,30 @@ gaussianElimination (row:rows) =
         newRows = map eliminateRow rows
     in rowNormalized : gaussianElimination (filter (not . null) (map (drop 1) newRows))
 
-padMatrix :: [[a]] -> [[a]]
-padMatrix matrix = map padRow matrix
+padMatrix :: Num a => [[a]] -> [[a]]
+padMatrix [] = [] 
+padMatrix (firstRow:rows) = firstRow : map padRow rows
   where
-    -- Вычисляем длину первой строки
-    firstRowLength = length (head matrix)
+    firstRowLength = length firstRow
     
-    -- Функция для добавления нулей в начало строки
     padRow row = replicate (firstRowLength - length row) 0 ++ row
 
--- Приведение к каноническому виду методом Жордана
 jordanElimination :: [[Double]] -> [[Double]]
 jordanElimination matrix = reverse $ jordanHelper (reverse matrix)
   where
     jordanHelper [] = []
     jordanHelper (row:rows) =
-        let rowPivot = head row
-            rowNormalized = row
-            eliminateRow r = zipWith
-                             (\a b -> if last (init r) >= 0 then a - b else a + b)  -- Вычисляем, вычитать или складывать
+        --let rowNormalized = row
+        let eliminateRow r = zipWith
+                             (\a b -> if last (init r) >= 0 then a - b else a + b)
                              r
-                             (0:rowNormalized)  -- Сопоставляем с нормализованной строкой
+                             row
             newRows = map eliminateRow  rows
-        in rowNormalized : jordanHelper newRows
+        in row : jordanHelper newRows
 
 -- Решение СЛАУ
 solveSLAU :: [[Double]] -> [Double]
-solveSLAU matrix = map last $ jordanElimination $ gaussianElimination matrix
+solveSLAU matrix = map last $ jordanElimination $ padMatrix $ gaussianElimination matrix
 
 printMatrix :: Show a => [[a]] -> IO ()
 printMatrix matrix = mapM_ putStrLn (map (unwords . map show) matrix)
@@ -71,12 +68,11 @@ main = do
         then do
             -- Решение СЛАУ
             let solution = solveSLAU matrix
-            -- Запись результата в файл
             let gauss = gaussianElimination matrix
-            printMatrix gauss
-            let aboba = padMatrix matrix
-            printMatrix aboba
-            let jordan = jordanElimination gauss
+            let padded = padMatrix gauss
+            printMatrix padded
+            putStrLn "------------------"
+            let jordan = jordanElimination padded
             printMatrix jordan
             writeMatrix outputFileName [solution]
             putStrLn "Решение записано в output.txt"
